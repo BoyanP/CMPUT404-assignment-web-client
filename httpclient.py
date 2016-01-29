@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 # Copyright 2013 Abram Hindle
-# 
+# Copyright 2016 Boyan Peychoff
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -31,9 +31,10 @@ class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
+    def __str__(self):
+        return "code: " + str(self.code) + "\n body :" + self.body
 
 class HTTPClient(object):
-    #def get_host_port(self,url):
 
     def parseURL(self,url):
         stripped = re.sub('(http://|https://)?',"",url)
@@ -42,9 +43,9 @@ class HTTPClient(object):
         port = 80
         maybePort=""
         lookForPathFlag = False
-        #print "stripped: " + str(stripped)
+
         for char in stripped:
-            #print char
+
             if char != '/' and lookForPathFlag == False:
                 host+=char
 
@@ -62,8 +63,7 @@ class HTTPClient(object):
             path = '/'
         if maybePort != "":
             port = int(maybePort)
-        #print "HOST IS :" + host
-        #print "PATH IS : " + path
+
         return [path,host,int(port)]
         
     def createRequestHeader(self,path,host,command="GET"):
@@ -72,11 +72,10 @@ class HTTPClient(object):
         header+= "Host: " + host + "\r\n"
         header+= "Connection: close \r\n"
 
-        #print "HEADER IS : " + header
         return header
 
     def parseResponse(self,response):
-        #parse the same way as the test lol
+
         code = ""
         body = ""
         responseParts = response.split('\n')
@@ -98,20 +97,15 @@ class HTTPClient(object):
         return [code,joinedBody]
         
     def connect(self, host, port):
-	#print"\n hey whats up \n"
-	#print("host in connect: ") + str(host)
-	#print("port in connect: " + str(port))
 
         clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         clientSocket.connect((host,port))
-        #print "connected to " + host + "at port: " + port + "\n" 
-        # use sockets!
+
         return clientSocket
-        #probably return clientSocket
+
 
     def get_code(self, data):
-        #get status code
-        #parse it from the first line
+
 	code = '500'
         response = data.split('\n')
 	try:
@@ -121,8 +115,6 @@ class HTTPClient(object):
 	return code
 
     def get_headers(self,data):
-        #get response headers
-        #probably used most for post
         response = data.split("\r\n")
         headers=[]
         for element in response:
@@ -130,16 +122,12 @@ class HTTPClient(object):
                 break
             else:
                 headers.append(element)
-        #print "headers: " + headers
+
         return headers
 
     def get_body(self, data):
-        #get body of the httprequest
-        #so add stuff like accept
-        #and where you are going
-        #or what variables you are posting
+
         response = data.split('\n')
-        #print "response: " + str(response)
         bodyFlag = False
         body = []
         for element in response:
@@ -149,12 +137,10 @@ class HTTPClient(object):
             if bodyFlag:
                 body.append(element)
         joinedBody = "".join(body)
-        #print "body in get: " + str(joinedBody)
+
         return joinedBody
 
-    # read everything from the socket
     def recvall(self, sock):
-	#print "am i in recvall?"
         buffer = bytearray()
         done = False
         while not done:
@@ -164,29 +150,19 @@ class HTTPClient(object):
 		#print str(buffer)
             else:
                 done = not part
-	#print "am i stuck in the loop?"
         return str(buffer)
 
     def GET(self, url, args=None):
 
         path,host,port = self.parseURL(url)
-	#print "host in GET: " + host
         headerToSend = self.createRequestHeader(path,host,"GET")
         clientSocket = self.connect(host,port)
         clientSocket.sendall(headerToSend + "\r\n\r\n")
         httpResponse = self.recvall(clientSocket)
-        #print httpResponse
-
-        #data = self.recvall(clientSocket)
+ 
         code = self.get_code(httpResponse)
         headers= self.get_headers(httpResponse)
         body = self.get_body(httpResponse)
-
-        #print "code: " + str(code)
-        #print "headers: " + str(headers)
-        #print "body: " + str(body)
-
-
 
         return HTTPResponse(int(code), body)
 
@@ -197,10 +173,7 @@ class HTTPClient(object):
 
 	if (args != None):
             postBody = urllib.urlencode(args)
-            #postBody = str(args)
-            print "postBody: " + postBody
             contentLength = len(postBody)
-            print "content-length: " + str(contentLength)
 
         path,host,port = self.parseURL(url)
         headerToSend = self.createRequestHeader(path,host,"POST")
@@ -213,39 +186,16 @@ class HTTPClient(object):
             clientSocket.sendall(headerToSend + "\r\n" + postBody)
         else:
             clientSocket.sendall(headerToSend + "\r\n\r\n")
-        httpResponse = self.recvall(clientSocket)
-        #print httpResponse
 
-        #data = self.recvall(clientSocket)
+        httpResponse = self.recvall(clientSocket)
         code = self.get_code(httpResponse)
         headers= self.get_headers(httpResponse)
         body = self.get_body(httpResponse)
 
-        #print "code: " + str(code)
-        #print "headers: " + str(headers)
-        #print "body: " + str(body)
         
         return HTTPResponse(int(code), body)
 
     def command(self,url ,command="GET" ,args=None):
-        #path,host = self.parseURL(url)
-        #headerToSend = self.createRequestHeader(path,host,command)
-        #clientSocket = self.connect(host,80)
-        #clientSocket.sendall(headerToSend + "\r\n\r\n")
-        #httpResponse = self.recvall(clientSocket)
-        #print httpResponse
-
-        #data = self.recvall(clientSocket)
-        #code = self.get_code(httpResponse)
-        #headers= self.get_headers(httpResponse)
-        #body = self.get_body(httpResponse)
-
-        #print "code: " + str(code)
-        #print "headers: " + str(headers)
-        #print "body: " + str(body)
-
-
-        #args = [code,headers,body]
         if (command == "POST"):
             return self.POST( url, args )
         else:
