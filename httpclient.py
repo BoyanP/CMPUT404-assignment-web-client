@@ -155,6 +155,15 @@ class HTTPClient(object):
     def GET(self, url, args=None):
 
         path,host,port = self.parseURL(url)
+
+        if args != None:
+            if "?" in path:
+                encodedQuery = urllib.urlencode(args)
+                path+= ("&" +encodedQuery)
+            else:
+                query = "?" + urllib.urlencode(args)
+                path += query
+
         headerToSend = self.createRequestHeader(path,host,"GET")
         clientSocket = self.connect(host,port)
         clientSocket.sendall(headerToSend + "\r\n\r\n")
@@ -182,7 +191,6 @@ class HTTPClient(object):
             
         clientSocket = self.connect(host,port)
         if (postBody != None):
-            print "message sent: " + headerToSend + "\r\n" +postBody
             clientSocket.sendall(headerToSend + "\r\n" + postBody)
         else:
             clientSocket.sendall(headerToSend + "\r\n\r\n")
