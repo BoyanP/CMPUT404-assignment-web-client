@@ -50,20 +50,19 @@ class HTTPClient(object):
                 host+=char
 
             else:
-                #host+='/'
                 lookForPathFlag = True
 
             if(lookForPathFlag):
                 path+=char
         try:
             host,maybePort = host.split(':')
+
         except:
             print "port not specified using default: 80"
         if path == '':
             path = '/'
         if maybePort != "":
             port = int(maybePort)
-
         return [path,host,int(port)]
         
     def createRequestHeader(self,path,host,command="GET"):
